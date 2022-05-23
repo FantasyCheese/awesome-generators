@@ -1,0 +1,6 @@
+import axios from "axios";
+export * from "./{{tsApiPackage}}";
+export * from "./{{tsModelPackage}}";
+export let defaultAxios = axios.create({
+    baseURL: "{{{basePath}}}",
+});

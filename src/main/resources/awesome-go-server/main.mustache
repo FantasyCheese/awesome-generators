@@ -1,0 +1,16 @@
+package main
+
+import (
+    "awesome-go-server/{{apiPath}}"
+    "log"
+)
+
+func main() {
+    log.Printf("Server started")
+    router := {{apiPath}}.NewRouter(Model{})
+    log.Fatal(router.Run(":{{serverPort}}"))
+}
+
+type Model struct {
+
+}

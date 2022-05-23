@@ -1,0 +1,57 @@
+package {{packageName}}
+
+import (
+    "context"
+    _ "embed"
+    "github.com/getkin/kin-openapi/openapi3"
+    "github.com/getkin/kin-openapi/openapi3filter"
+    kinRouter "github.com/getkin/kin-openapi/routers"
+    kinGorillamuxRouter "github.com/getkin/kin-openapi/routers/gorillamux"
+    "github.com/gin-gonic/gin"
+)
+
+//go:embed spec.json
+var specData []byte
+
+func NewRouter(model Model) *gin.Engine {
+    router := gin.Default()
+    router.Use(validate(getKinRouter(), model.AuthenticationFunc))
+	fileTypes := []string{"image/jpeg", "image/png", "video/mp4"}
+	for _, fileType := range fileTypes {
+		openapi3filter.RegisterBodyDecoder(fileType, openapi3filter.FileBodyDecoder)
+	}
+    {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}
+    router.Handle("{{#lambda.uppercase}}{{httpMethod}}{{/lambda.uppercase}}", "{{{basePathWithoutHost}}}{{{path}}}", {{operationId}}Ctrl(model.{{operationId}})){{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
+    return router
+}
+
+type Model interface {
+    AuthenticationFunc(context.Context, *openapi3filter.AuthenticationInput) error
+    {{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}
+    {{operationId}}(args {{operationId}}Args) {{#returnType}}(*Error, *{{.}}){{/returnType}}{{^returnType}}*Error{{/returnType}}{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
+}
+
+func validate(router kinRouter.Router, authFunc openapi3filter.AuthenticationFunc) func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		route, pathParams, err := router.FindRoute(ctx.Request)
+        {{>error}}
+		err = openapi3filter.ValidateRequest(context.Background(), &openapi3filter.RequestValidationInput{
+			Request:    ctx.Request,
+			PathParams: pathParams,
+			Route:      route,
+			Options: &openapi3filter.Options{
+				AuthenticationFunc: authFunc,
+			},
+		})
+        {{>error}}
+	}
+}
+
+func getKinRouter() kinRouter.Router {
+    c := context.Background()
+    loader := openapi3.Loader{Context: c}
+    doc, _ := loader.LoadFromData(specData)
+    _ = doc.Validate(c)
+    router, _ := kinGorillamuxRouter.NewRouter(doc)
+    return router
+}

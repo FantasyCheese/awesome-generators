@@ -1,0 +1,50 @@
+package {{packageName}}
+
+import (
+    "mime/multipart"
+    "net/http"
+    "strconv"
+    "time"
+
+    "github.com/gin-gonic/gin"
+)
+
+// Dummy variables to suppress unused import
+var _ = multipart.FileHeader{}
+var _ = http.StatusOK
+var _ = strconv.ErrRange
+var _ = time.Time{}
+{{#operations}}{{#operation}}
+// {{operationId}}Ctrl - {{{summary}}}
+{{#isDeprecated}}
+// Deprecated
+{{/isDeprecated}}
+func {{operationId}}Ctrl({{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}} func(args {{operationId}}Args) {{#returnType}}(*Error, *{{.}}){{/returnType}}{{^returnType}}*Error{{/returnType}}) func(c *gin.Context) {
+    return func(ctx *gin.Context) {
+		var args {{operationId}}Args
+        _ = ctx.Bind(&args{{#bodyParam}}.{{#isArray}}{{baseType}}List{{/isArray}}{{^isArray}}{{dataType}}{{/isArray}}{{/bodyParam}})
+        _ = ctx.BindUri(&args)
+        _ = ctx.BindQuery(&args)
+        _ = ctx.BindHeader(&args)
+        err{{#returnType}}, result{{/returnType}} := {{#lambda.camelcase}}{{operationId}}{{/lambda.camelcase}}(args)
+        if err != nil {
+            ctx.AbortWithStatusJSON(int(err.Status), *err)
+            return
+        }
+        {{#returnType}}
+        ctx.JSON(http.StatusOK, *result)
+        {{/returnType}}
+        {{^returnType}}
+        ctx.AbortWithStatus(http.StatusOK)
+        {{/returnType}}
+    }
+}
+type {{operationId}}Args struct {
+    {{#bodyParam}}
+    {{#isArray}}{{baseType}}List{{/isArray}}{{^isArray}}{{dataType}}{{/isArray}} {{dataType}}
+    {{/bodyParam}}
+    {{#allParams}}{{^isBodyParam}}
+    {{#lambda.pascalcase}}{{paramName}}{{/lambda.pascalcase}} {{dataType}} `{{#isPathParam}}uri{{/isPathParam}}{{#isQueryParam}}form{{/isQueryParam}}{{#isFormParam}}form{{/isFormParam}}{{#isHeaderParam}}header{{/isHeaderParam}}:"{{paramName}}"`
+    {{/isBodyParam}}{{/allParams}}
+}
+{{/operation}}{{/operations}}

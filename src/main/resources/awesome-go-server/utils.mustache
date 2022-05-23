@@ -1,0 +1,15 @@
+package {{packageName}}
+
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
+
+func RespondError(ctx *gin.Context, err error) {
+	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+		"error": gin.H{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+		},
+	})
+}

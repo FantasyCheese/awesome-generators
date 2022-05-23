@@ -1,0 +1,5 @@
+{{#npmRepository}}
+@model-taiwan:registry = "https:{{.}}"
+{{.}}:_authToken = ${GITLAB_TOKEN}
+always-auth = true
+{{/npmRepository}}

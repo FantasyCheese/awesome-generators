@@ -1,0 +1,5 @@
+.idea/
+.openapi-generator/
+dist/
+node_modules/
+.openapi-generator-ignore
