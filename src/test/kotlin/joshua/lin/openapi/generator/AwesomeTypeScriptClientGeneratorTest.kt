@@ -16,9 +16,11 @@ class AwesomeTypeScriptClientGeneratorTest {
     }
 
     private fun generate(stage: String) {
-        val packageName = "model-tv-$stage-api-client"
+        val packageName = "model-tv-$stage-typescript-client"
         DefaultGenerator().opts(
             CodegenConfigurator()
+                .setEnablePostProcessFile(true)
+                .setGenerateAliasAsModel(true)
                 .setGeneratorName("awesome-typescript-client")
                 .setAdditionalProperties(mapOf("npmName" to packageName))
                 .setInputSpec("../model-tv-api-spec/public/$stage/spec-bundle.yaml")

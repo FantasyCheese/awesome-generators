@@ -8,6 +8,9 @@ import org.openapitools.codegen.CodegenOperation
 import org.openapitools.codegen.SupportingFile
 import org.openapitools.codegen.config.GlobalSettings
 import org.openapitools.codegen.languages.TypeScriptAxiosClientCodegen
+import org.openapitools.codegen.model.ModelMap
+import org.openapitools.codegen.model.ModelsMap
+import org.openapitools.codegen.model.OperationsMap
 
 class AwesomeTypeScriptClientGenerator : TypeScriptAxiosClientCodegen(), CodegenConfig {
     init {
@@ -49,14 +52,14 @@ class AwesomeTypeScriptClientGenerator : TypeScriptAxiosClientCodegen(), Codegen
         handleDescriptionByAllOf(openAPI)
     }
 
-    override fun postProcessAllModels(objs: MutableMap<String, Any>): MutableMap<String, Any> {
+    override fun postProcessAllModels(objs: MutableMap<String, ModelsMap>): MutableMap<String, ModelsMap> {
         val models = super.postProcessAllModels(objs)
         handleResponseWrapperModel(models, additionalProperties[RESPONSE_WRAPPER] as String)
         handleResponseWrapperModel(models, additionalProperties[LIST_RESPONSE_WRAPPER] as String)
         return models
     }
 
-    private fun handleResponseWrapperModel(models: MutableMap<String, Any>, wrapper: String) {
+    private fun handleResponseWrapperModel(models: MutableMap<String, ModelsMap>, wrapper: String) {
         val name = wrapper.split(".").first()
         val path = wrapper.split(".").last()
         @Suppress("UNCHECKED_CAST")
@@ -71,7 +74,7 @@ class AwesomeTypeScriptClientGenerator : TypeScriptAxiosClientCodegen(), Codegen
         }
     }
 
-    override fun postProcessOperationsWithModels(objs: Map<String?, Any>, allModels: List<Any?>?): Map<String?, Any>? {
+    override fun postProcessOperationsWithModels(objs: OperationsMap?, allModels: MutableList<ModelMap>?): OperationsMap {
         val obj = super.postProcessOperationsWithModels(objs, allModels)
 
         @Suppress("UNCHECKED_CAST") val operations = obj["operations"] as? Map<String, Any>?

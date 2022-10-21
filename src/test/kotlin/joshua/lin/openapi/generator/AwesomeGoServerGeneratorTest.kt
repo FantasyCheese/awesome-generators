@@ -16,7 +16,7 @@ class AwesomeGoServerGeneratorTest {
     }
 
     private fun generate(stage: String) {
-        val moduleName = "model-tv-$stage-api-server"
+        val moduleName = "model-tv-$stage-go-server"
         DefaultGenerator().opts(
             CodegenConfigurator()
                 .setGeneratorName("awesome-go-server")

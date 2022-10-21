@@ -5,6 +5,9 @@ import org.apache.commons.io.FilenameUtils
 import org.openapitools.codegen.*
 import org.openapitools.codegen.languages.AbstractGoCodegen
 import org.openapitools.codegen.languages.GoGinServerCodegen
+import org.openapitools.codegen.model.ModelMap
+import org.openapitools.codegen.model.ModelsMap
+import org.openapitools.codegen.model.OperationsMap
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.IOException
@@ -45,18 +48,17 @@ class AwesomeGoServerGenerator : GoGinServerCodegen(), CodegenConfig {
         handleDescriptionByAllOf(openAPI)
     }
 
-    override fun postProcessAllModels(objs: MutableMap<String, Any>): MutableMap<String, Any> {
+    override fun postProcessAllModels(objs: MutableMap<String, ModelsMap>): MutableMap<String, ModelsMap> {
         val models = super.postProcessAllModels(objs)
         handleResponseWrapperModel(models, additionalProperties[AwesomeTypeScriptClientGenerator.RESPONSE_WRAPPER] as String)
         handleResponseWrapperModel(models, additionalProperties[AwesomeTypeScriptClientGenerator.LIST_RESPONSE_WRAPPER] as String)
         return models
     }
 
-    private fun handleResponseWrapperModel(models: MutableMap<String, Any>, wrapper: String) {
+    private fun handleResponseWrapperModel(models: MutableMap<String, ModelsMap>, wrapper: String) {
         val name = wrapper.split(".").first()
         val path = wrapper.split(".").last()
-        @Suppress("UNCHECKED_CAST")
-        val model = models[name] as MutableMap<String, Any>
+        val model = models[name] ?: return
         @Suppress("UNCHECKED_CAST")
         val codegenModel = (model["models"] as List<Map<String, Any>>).first()["model"] as CodegenModel
         codegenModel.vars.forEach {
@@ -72,7 +74,7 @@ class AwesomeGoServerGenerator : GoGinServerCodegen(), CodegenConfig {
         return super.postProcessSupportingFileData(objs)
     }
 
-    override fun postProcessOperationsWithModels(objs: MutableMap<String, Any>?, allModels: MutableList<Any>?): MutableMap<String, Any> {
+    override fun postProcessOperationsWithModels(objs: OperationsMap?, allModels: MutableList<ModelMap>?): OperationsMap {
         val obj = super.postProcessOperationsWithModels(objs, allModels)
         @Suppress("UNCHECKED_CAST") val operations = obj["operations"] as? Map<String, Any>?
         @Suppress("UNCHECKED_CAST") val operation = operations?.get("operation") as? List<CodegenOperation>? ?: listOf()
