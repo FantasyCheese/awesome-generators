@@ -16,6 +16,10 @@ fun handleDescriptionByAllOf(openAPI: OpenAPI) {
     }
 }
 
+fun removeOperationTags(openAPI: OpenAPI) {
+    openAPI.paths.values.flatMap { it.readOperations() }.forEach { it.tags.clear() }
+}
+
 fun <T> Schema<T>.onlyDescription() : Boolean {
     return description != null && listOf(
         title, multipleOf, maximum, exclusiveMaximum, minimum, exclusiveMinimum, maxLength, minLength,

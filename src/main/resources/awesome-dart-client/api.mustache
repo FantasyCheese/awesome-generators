@@ -1,0 +1,21 @@
+import 'dart:io';
+import 'dart:convert';
+import 'dart:core' hide DateTime;
+
+import 'package:retrofit/retrofit.dart';
+import 'package:dio/dio.dart';
+
+import './date_time.dart';
+import '../{{modelPackage}}/_index.dart';
+
+part 'default_api.g.dart';
+
+@RestApi()
+abstract class RestClient {
+  factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
+  {{#operations}}
+  {{#operation}}
+  {{{vendorExtensions.code}}}
+  {{/operation}}
+  {{/operations}}
+}

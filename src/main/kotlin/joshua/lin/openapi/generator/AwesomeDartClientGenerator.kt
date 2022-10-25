@@ -4,6 +4,8 @@ import com.google.common.base.CaseFormat
 import io.swagger.v3.oas.models.OpenAPI
 import org.openapitools.codegen.CodegenConstants
 import org.openapitools.codegen.CodegenModel
+import org.openapitools.codegen.CodegenOperation
+import org.openapitools.codegen.CodegenParameter
 import org.openapitools.codegen.CodegenProperty
 import org.openapitools.codegen.SupportingFile
 import org.openapitools.codegen.languages.AbstractDartCodegen
@@ -24,42 +26,65 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
 
         sourceFolder = ""
 
-        typeMapping["file"] = "File";
-        typeMapping["binary"] = "File";
+        typeMapping["file"] = "File"
+        typeMapping["binary"] = "File"
         imports["File"] = "dart:io"
     }
 
     override fun processOpts() {
         super.processOpts()
-        supportingFiles.apply {
-            add(SupportingFile("pubspec.mustache", "pubspec.yaml"))
-        }
+        supportingFiles.addAll(
+            listOf(
+                SupportingFile("pubspec.mustache", "pubspec.yaml"),
+                SupportingFile("_index.mustache", "$libPath/$modelPackage/_index.dart"),
+                SupportingFile("date_time.dart", "$libPath/$apiPackage/date_time.dart"),
+            )
+        )
     }
 
     override fun preprocessOpenAPI(openAPI: OpenAPI) {
         super.preprocessOpenAPI(openAPI)
         handleDescriptionByAllOf(openAPI)
+        removeOperationTags(openAPI)
     }
 
-    override fun postProcessAllModels(objs: MutableMap<String, ModelsMap>?) =
-        super.postProcessAllModels(objs).mapValues {
-            it.value.models[0].model.apply {
-                vendorExtensions["code"] = code
-            }
-            return@mapValues it.value
-        }.toMutableMap()
+    override fun postProcessAllModels(objs: MutableMap<String, ModelsMap>) =
+        super.postProcessAllModels(objs)
+            .mapValues(::addCodeInVendorExtension)
+
+    private fun addCodeInVendorExtension(modelsMapEntry: Map.Entry<String, ModelsMap>): ModelsMap {
+        modelsMapEntry.value.models[0].model.apply { vendorExtensions["code"] = code }
+        return modelsMapEntry.value
+    }
 
     override fun postProcessOperationsWithModels(
-        objs: OperationsMap?, allModels: MutableList<ModelMap>?
+        objs: OperationsMap?,
+        allModels: MutableList<ModelMap>?
     ): OperationsMap {
-        return super.postProcessOperationsWithModels(objs, allModels)
+        val operationsMap = super.postProcessOperationsWithModels(objs, allModels)
+        val operations = operationsMap.operations.operation
+
+        // TODO: support File return type
+        operations.removeIf { it.returnType == "File" }
+
+        // handle null return type
+        operations.forEach {
+            if (it.returnType == null) it.returnType = "void"
+            it.vendorExtensions["code"] = it.code
+        }
+
+        return operationsMap
     }
 
     private val CodegenModel.code
         get() = if (isEnum) """
-            import 'package:freezed_annotation/freezed_annotation.dart';
-            enum $classname { 
-              ${enumValuesCode(allowableValues)}
+            class $classname {
+              const $classname._(this.value);
+              final $dataType value;
+              factory $classname.fromJson($dataType value) => $classname._(value);
+              $dataType toJson() => value;
+            
+              ${enumValuesCode(classname, allowableValues)}
             }
         """ else """
             import 'package:flutter/foundation.dart';
@@ -75,10 +100,7 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
                  ${allVars.joinToString("\n") { it.code }}
               }) = _${classname};
     
-              ${
-                  if (allVars.any { it.isBinary }) "" 
-                  else "factory ${classname}.fromJson(final Map<String, Object?> json) => _\$${classname}FromJson(json);"
-              }
+              ${if (allVars.any { it.isBinary }) "" else "factory ${classname}.fromJson(final Map<String, Object?> json) => _\$${classname}FromJson(json);"}
             }
         """
 
@@ -87,13 +109,42 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
             if (required) "required $dataType ${name},"
             else "${dataType}? ${name},"
 
-    private fun importStatement(classname: String) =
-        imports[classname]?.let { "import '$it';" } ?: classname
-            .let { CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, it) }
-            .let { "import 'package:${pubName}/${modelPackage}/${it}.dart';" }
+    private fun importStatement(classname: String) = imports[classname]?.let { "import '$it';" }
+        ?: classname.let { "import '${CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, it)}.dart';" }
 
-    private fun enumValuesCode(allowableValues: Map<String, Any>) =
+    private fun enumValuesCode(classname: String, allowableValues: Map<String, Any>) =
         allowableValues["enumVars"].let { it as List<Map<String, Any>> }.joinToString("\n") {
-            "@JsonValue(${it["value"]}) ${it["name"]},"
+            "static const ${it["name"]} = ${classname}._(${it["value"]});"
         }
+
+    private val CodegenOperation.code
+        get() = """
+            @${httpMethod}("$path")
+            Future<${returnType}> ${operationId}(
+              ${allParams.joinToString("\n") { it.code }}
+            );
+        """
+
+    private val CodegenParameter.code
+        get() = "@${annotation}(${annotationParam}) ${dataTypeWithFileFix}${if (!required) "?" else ""} $paramName,"
+
+    private val CodegenParameter.annotation
+        get() = when {
+            isPathParam -> "Path"
+            isQueryParam -> "Query"
+            isHeaderParam -> "Header"
+            isBodyParam -> "Body"
+            isFormParam -> "Part"
+            else -> throw IllegalArgumentException("Unsupported parameter: $this")
+        }
+
+    private val CodegenParameter.annotationParam
+        get() = when {
+            isBodyParam -> ""
+            isFormParam -> "name: \"${paramName}\""
+            else -> "\"${paramName}\""
+        }
+
+    private val CodegenParameter.dataTypeWithFileFix
+        get() = if (dataType == "File") "List<File>" else dataType
 }
