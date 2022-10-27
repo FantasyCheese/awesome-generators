@@ -15,7 +15,7 @@ abstract class RestClient {
   factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
   {{#operations}}
   {{#operation}}
-  {{{vendorExtensions.code}}}
+  {{{vendorExtensions.CODE}}}
   {{/operation}}
   {{/operations}}
 }

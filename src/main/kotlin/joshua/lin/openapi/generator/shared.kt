@@ -3,6 +3,8 @@ package joshua.lin.openapi.generator
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.ComposedSchema
 import io.swagger.v3.oas.models.media.Schema
+import org.openapitools.codegen.CodegenModel
+import org.openapitools.codegen.CodegenProperty
 
 fun handleDescriptionByAllOf(openAPI: OpenAPI) {
     openAPI.components.schemas.map { it.value.properties ?: mutableMapOf() }.forEach { props ->
@@ -17,7 +19,7 @@ fun handleDescriptionByAllOf(openAPI: OpenAPI) {
 }
 
 fun removeOperationTags(openAPI: OpenAPI) {
-    openAPI.paths.values.flatMap { it.readOperations() }.forEach { it.tags.clear() }
+    openAPI.paths.values.flatMap { it.readOperations() }.forEach { it.tags?.clear() }
 }
 
 fun <T> Schema<T>.onlyDescription() : Boolean {
@@ -28,3 +30,24 @@ fun <T> Schema<T>.onlyDescription() : Boolean {
         externalDocs, deprecated, xml, extensions, enum, discriminator, default
     ).all { it == null }
 }
+
+val CodegenModel.genericTypes: List<String>
+    get() {
+        val genericModel = interfaceModels?.firstOrNull { it.genericSymbols.isNotEmpty() } ?: return emptyList()
+        val properties = interfaceModels.filterNot { it == genericModel }.flatMap { it.allVars }
+        return genericModel.genericProperties.map { genericProp ->
+            try {
+                properties.first { it.name == genericProp.name }.dataType
+            } catch (e: Exception) {
+                return listOf()
+            }
+        }
+    }
+
+val CodegenProperty.genericType
+    get() = vendorExtensions?.get("x-generic-type") as? String
+val CodegenModel.genericProperties
+    get() = allVars.filter { it.genericType != null }
+
+val CodegenModel.genericSymbols
+    get() = genericProperties.map { it.genericType }
