@@ -21,6 +21,9 @@ class AwesomeDartClientGeneratorTest {
             CodegenConfigurator()
                 .setGeneratorName("awesome-dart-client")
                 .setGlobalProperties(mapOf("skipFormModel" to "false"))
+                .setAdditionalProperties(mapOf(
+                    "pubName" to moduleName.replace("-", "_")
+                ))
                 .setInputSpec("../model-tv/model-tv-api-spec/public/$stage/spec-bundle.yaml")
                 .setOutputDir("generated/$moduleName")
                 .toClientOptInput()
