@@ -23,7 +23,7 @@ class AwesomeTypeScriptClientGeneratorTest {
                 .setGenerateAliasAsModel(true)
                 .setGeneratorName("awesome-typescript-client")
                 .setAdditionalProperties(mapOf("npmName" to packageName))
-                .setInputSpec("../model-tv-api-spec/public/$stage/spec-bundle.yaml")
+                .setInputSpec("../model-tv/model-tv-api-spec/public/$stage/spec-bundle.yaml")
                 .setOutputDir("generated/$packageName")
                 .toClientOptInput()
         ).generate()

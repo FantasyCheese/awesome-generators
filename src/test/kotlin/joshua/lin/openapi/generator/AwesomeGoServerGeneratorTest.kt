@@ -26,7 +26,7 @@ class AwesomeGoServerGeneratorTest {
                     "serverPort" to "58271"
                 ))
                 .setEnablePostProcessFile(true)
-                .setInputSpec("../model-tv-api-spec/public/$stage/spec-bundle.yaml")
+                .setInputSpec("../model-tv/model-tv-api-spec/public/$stage/spec-bundle.yaml")
                 .setOutputDir("generated/$moduleName")
                 .toClientOptInput()
         ).generate()

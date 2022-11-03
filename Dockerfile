@@ -1,4 +1,4 @@
-FROM openapitools/openapi-generator-cli:v5.4.0
+FROM openapitools/openapi-generator-cli:v6.2.0
 WORKDIR /awesome-generators
 # Awesome Generators
 COPY target/awesome-generators-1.0.0-jar-with-dependencies.jar ./awesome-generators.jar
