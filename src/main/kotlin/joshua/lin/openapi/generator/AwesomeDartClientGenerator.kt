@@ -81,4 +81,6 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
 
         return operationsMap
     }
+
+    override fun toApiFilename(name: String?) = "rest_client"
 }
