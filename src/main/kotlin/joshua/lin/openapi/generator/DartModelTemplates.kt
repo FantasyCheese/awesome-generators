@@ -77,11 +77,20 @@ private val CodegenModel.enumValues
 
 private val CodegenProperty.constructorParameter
     get() =
-        if (required) "required ${genericType ?: dataType} ${name},"
-        else "${genericType ?: dataType}? ${name},"
+        if (required) "$typeDefault required ${genericType ?: dataType} ${name},"
+        else "$typeDefault ${genericType ?: dataType}? ${name},"
 
 private val CodegenModel.genericDeclarationCode
     get() = "<${genericSymbols.joinToString(",")}>"
 
 private val CodegenProperty.fieldCode
     get() = "final ${genericType ?: dataType}${if (required) "" else "?"} ${name};"
+
+private val CodegenProperty.typeDefault
+    get() = when {
+        dataType.startsWith("List") -> "@Default([])"
+//        dataType.startsWith("String") -> "@Default('')"
+//        dataType.startsWith("int") -> "@Default(0)"
+//        dataType.startsWith("double") -> "@Default(0)"
+        else -> ""
+    }
