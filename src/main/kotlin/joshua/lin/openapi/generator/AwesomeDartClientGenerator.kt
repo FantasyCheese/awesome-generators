@@ -32,6 +32,7 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
             listOf(
                 SupportingFile("gitignore", ".gitignore"),
                 SupportingFile("pubspec.mustache", "pubspec.yaml"),
+                SupportingFile("init.sh", "init.sh"),
                 SupportingFile("_index.mustache", "$libPath/$modelPackage/_index.dart"),
                 SupportingFile("date_time.dart", "$libPath/$apiPackage/date_time.dart"),
             )
