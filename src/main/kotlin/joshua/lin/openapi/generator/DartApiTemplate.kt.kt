@@ -28,8 +28,8 @@ private val CodegenParameter.annotation
 private val CodegenParameter.annotationParam
     get() = when {
         isBodyParam -> ""
-        isFormParam -> "name: \"${paramName}\""
-        else -> "\"${paramName}\""
+        isFormParam -> "name: \"${baseName}\""
+        else -> "\"${baseName}\""
     }
 
 private val CodegenParameter.dataTypeWithFileFix
