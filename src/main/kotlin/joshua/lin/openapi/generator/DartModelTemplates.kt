@@ -78,9 +78,9 @@ private val CodegenModel.enumValues
 private val CodegenProperty.constructorParameter
     get() =
         when {
-            requiredWithDefault -> "$typeDefault ${genericType ?: dataType} $jsonKey $name,"
-            required -> "required ${genericType ?: dataType} $jsonKey $name,"
-            else -> "${genericType ?: dataType}? $jsonKey $name,"
+            requiredWithDefault -> "$jsonKey $typeDefault ${genericType ?: dataType} $name,"
+            required -> "$jsonKey required ${genericType ?: dataType} $name,"
+            else -> "$jsonKey ${genericType ?: dataType}? $name,"
         }
 
 private val CodegenModel.genericDeclarationCode
