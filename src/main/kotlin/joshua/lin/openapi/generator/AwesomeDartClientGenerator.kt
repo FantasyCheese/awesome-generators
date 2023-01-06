@@ -42,6 +42,7 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
     override fun preprocessOpenAPI(openAPI: OpenAPI) {
         super.preprocessOpenAPI(openAPI)
         handleDescriptionByAllOf(openAPI)
+        extractInlineEnum(openAPI)
         removeOperationTags(openAPI)
     }
 

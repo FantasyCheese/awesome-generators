@@ -1,5 +1,6 @@
 package joshua.lin.openapi.generator
 
+import com.google.common.base.CaseFormat
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.ComposedSchema
 import io.swagger.v3.oas.models.media.Schema
@@ -16,6 +17,18 @@ fun handleDescriptionByAllOf(openAPI: OpenAPI) {
             }
         }
     }
+}
+
+fun extractInlineEnum(openAPI: OpenAPI) {
+    val extractedSchemas = mutableMapOf<String, Schema<Any>>()
+    openAPI.components.schemas.forEach { (schemaName, schema) ->
+        schema.properties?.filterNot { it.value.enum.isNullOrEmpty() }?.forEach { (propName, prop) ->
+            val enumName = schemaName + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, propName)
+            schema.properties[propName] = Schema<Any>().apply { `$ref` = "#/components/schemas/$enumName" }
+            extractedSchemas[enumName] = prop
+        }
+    }
+    openAPI.components.schemas.putAll(extractedSchemas)
 }
 
 fun removeOperationTags(openAPI: OpenAPI) {
