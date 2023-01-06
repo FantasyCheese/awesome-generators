@@ -85,4 +85,23 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
     }
 
     override fun toApiFilename(name: String?) = "rest_client"
+
+    override fun toEnumVarName(value: String, datatype: String?): String? = when {
+        value.isEmpty() -> "empty"
+
+        // Only rename numeric values when the datatype is numeric
+        // AND the name is not changed by enum extensions (matches a numeric value).
+        (isNumber(datatype) && value.matches(Regex("^-?\\d.*"))) ->
+            toVarName("number${if (value.startsWith("-")) "_negative" else ""}${value}")
+
+        else -> toVarName(value)
+    }
+
+    override fun toEnumValue(value: String?, datatype: String?): String? = when {
+        isNumber(datatype) || "boolean".equals(datatype, ignoreCase = true) -> value
+        else -> "\"${escapeText(value)}\""
+    }
+
+    private fun isNumber(type: String?): Boolean =
+        listOf("num", "double", "int").any { it.equals(type, ignoreCase = true) }
 }
