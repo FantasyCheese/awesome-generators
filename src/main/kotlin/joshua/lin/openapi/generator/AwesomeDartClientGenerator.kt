@@ -2,6 +2,7 @@ package joshua.lin.openapi.generator
 
 import io.swagger.v3.oas.models.OpenAPI
 import org.openapitools.codegen.CodegenConstants
+import org.openapitools.codegen.CodegenOperation
 import org.openapitools.codegen.SupportingFile
 import org.openapitools.codegen.languages.AbstractDartCodegen
 import org.openapitools.codegen.model.ModelMap
@@ -81,6 +82,8 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
             it.vendorExtensions["CODE"] = it.code
         }
 
+        vendorExtensions["CLIENT_FACTORY"] = generateClientFactoryCode(operations)
+
         return operationsMap
     }
 
@@ -104,4 +107,63 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
 
     private fun isNumber(type: String?): Boolean =
         listOf("num", "double", "int").any { it.equals(type, ignoreCase = true) }
+
+    private fun generateClientFactoryCode(operations: List<CodegenOperation>): String {
+        val globalParameters = mutableListOf<GlobalParameter>()
+        operations.forEach { op->
+            op.allParams.filter { it.isGlobal }.forEach {
+                val type = when {
+                    it.isHeaderParam -> "headers"
+                    it.isQueryParam -> "queryParameters"
+                    else -> return@forEach
+                }
+                val name = it.paramName
+
+                if (globalParameters.none { it.paramType == type && it.paramName == name }) {
+                    globalParameters.add(GlobalParameter(type, name, mutableListOf()))
+                }
+
+                globalParameters.first { it.paramType == type && it.paramName == name }.operations.add(op)
+            }
+        }
+
+        return """
+            RestClient restClientWithGlobalParameter(
+              Dio dio, {
+              String? baseUrl,
+              ${globalParameters.joinToString("\n") { "required Getter ${it.paramName}Getter," }}
+            }) {
+              dio.interceptors.add(GlobalParameterInterceptor(
+                ${globalParameters.joinToString("\n") { "${it.paramName}Getter: ${it.paramName}Getter," }}
+              ));
+              return RestClient(dio, baseUrl: baseUrl);
+            }
+
+            class GlobalParameterInterceptor extends Interceptor {
+              GlobalParameterInterceptor({
+                ${globalParameters.joinToString("\n") { "required this.${it.paramName}Getter," }}
+              });
+
+              ${globalParameters.joinToString("\n") { "final Getter ${it.paramName}Getter;" }}
+              
+              @override
+              void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+                ${globalParameters.joinToString("\n") { it.interceptorRequestCode }}
+                handler.next(options);
+              }
+            }
+            
+            typedef Getter = dynamic Function();
+        """.trimIndent()
+    }
+}
+
+class GlobalParameter(val paramType: String, val paramName: String, val operations: MutableList<CodegenOperation>) {
+    val interceptorRequestCode get() = """
+        if ([
+          ${operations.joinToString("\n") { "\"${it.httpMethod}:${it.path}\"," }}
+        ].contains('${"$"}{options.method}:${"$"}{options.path}')) {
+          options.${paramType}['${paramName}'] = ${paramName}Getter();
+        }
+    """.trimIndent()
 }

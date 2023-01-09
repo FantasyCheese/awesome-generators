@@ -8,7 +8,7 @@ val CodegenOperation.code
     get() = """
             @${httpMethod}("$path")
             Future<${returnTypeWithGeneric}> ${operationId}(
-              ${allParams.joinToString("\n") { it.code }}
+              ${allParams.filterNot { it.isGlobal }.joinToString("\n") { it.code }}
             );
         """
 
@@ -42,5 +42,8 @@ val CodegenOperation.returnTypeWithGeneric: String
             model.dataType + "<${model.genericTypes.joinToString(",")}>"
         }
     }
+
+val CodegenParameter.isGlobal
+    get() = vendorExtensions.containsKey("x-global-parameter")
 
 const val SUCCESS_RESPONSE_MODEL = "SUCCESS_RESPONSE_MODEL"

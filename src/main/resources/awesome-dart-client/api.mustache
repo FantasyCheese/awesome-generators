@@ -12,10 +12,12 @@ part 'rest_client.g.dart';
 
 @RestApi()
 abstract class RestClient {
-  factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
+  factory RestClient(Dio dio, {String? baseUrl}) = _RestClient;
   {{#operations}}
   {{#operation}}
   {{{vendorExtensions.CODE}}}
   {{/operation}}
   {{/operations}}
 }
+
+{{{vendorExtensions.CLIENT_FACTORY}}}
