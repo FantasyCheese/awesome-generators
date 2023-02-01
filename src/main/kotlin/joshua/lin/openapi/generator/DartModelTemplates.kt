@@ -7,24 +7,15 @@ import org.openapitools.codegen.CodegenProperty
 val CodegenModel.code
     get() = when {
         isEnum -> """
-                class $classname {
-                  const $classname._(this.value);
+                import 'package:json_annotation/json_annotation.dart';
+                
+                part '${classFilename}.g.dart';
+
+                @JsonEnum(alwaysCreate: true)
+                enum $classname {
+                  $enumValues;
                   
-                  final $dataType value;
-                  
-                  factory $classname.fromJson($dataType value) => $classname._(value);
-                  
-                  $dataType toJson() => value;
-                  
-                  @override
-                  bool operator ==(Object other) => other is $classname && value == other.value;
-                  
-                  @override
-                  int get hashCode => value.hashCode;
-                  
-                  $enumValueDeclarations
-                  
-                  $enumValues
+                  $dataType toJson() => _$${classname}EnumMap[this]!;
                 }
             """
 
@@ -81,14 +72,9 @@ private val CodegenModel.importStatements
         else "import '${snakeCase}.dart';"
     }
 
-private val CodegenModel.enumValueDeclarations
-    get() = allowableValues["enumVars"].let { it as List<Map<String, Any>> }.joinToString("\n") {
-        "static const ${it["name"]} = ${classname}._(${it["value"]});"
-    }
-
 private val CodegenModel.enumValues
-    get() = allowableValues["enumVars"].let { it as List<Map<String, Any>> }.let {
-        "static const values = [${it.joinToString(",") { it["name"] as String }}];"
+    get() = allowableValues["enumVars"].let { it as List<Map<String, Any>> }.joinToString(",\n") {
+        "@JsonValue(${it["value"]}) ${it["name"]}"
     }
 
 private val CodegenProperty.constructorParameter
