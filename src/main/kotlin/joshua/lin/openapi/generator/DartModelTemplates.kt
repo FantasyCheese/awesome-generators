@@ -9,10 +9,21 @@ val CodegenModel.code
         isEnum -> """
                 class $classname {
                   const $classname._(this.value);
+                  
                   final $dataType value;
+                  
                   factory $classname.fromJson($dataType value) => $classname._(value);
+                  
                   $dataType toJson() => value;
-
+                  
+                  @override
+                  bool operator ==(Object other) => other is $classname && value == other.value;
+                  
+                  @override
+                  int get hashCode => value.hashCode;
+                  
+                  $enumValueDeclarations
+                  
                   $enumValues
                 }
             """
@@ -70,9 +81,14 @@ private val CodegenModel.importStatements
         else "import '${snakeCase}.dart';"
     }
 
-private val CodegenModel.enumValues
+private val CodegenModel.enumValueDeclarations
     get() = allowableValues["enumVars"].let { it as List<Map<String, Any>> }.joinToString("\n") {
         "static const ${it["name"]} = ${classname}._(${it["value"]});"
+    }
+
+private val CodegenModel.enumValues
+    get() = allowableValues["enumVars"].let { it as List<Map<String, Any>> }.let {
+        "static const values = [${it.joinToString(",") { it["name"] as String }}];"
     }
 
 private val CodegenProperty.constructorParameter
