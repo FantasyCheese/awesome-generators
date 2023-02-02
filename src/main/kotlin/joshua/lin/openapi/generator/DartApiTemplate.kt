@@ -6,7 +6,7 @@ import org.openapitools.codegen.CodegenParameter
 
 val CodegenOperation.code
     get() = """
-            @${httpMethod}("$path")
+            @${httpMethod}("$path") ${if (this.hasFormParams) "@MultiPart()" else ""}
             Future<${returnTypeWithGeneric}> ${operationId}(
               ${allParams.filterNot { it.isGlobal }.joinToString("\n") { it.code }}
             );
@@ -33,7 +33,7 @@ private val CodegenParameter.annotationParam
     }
 
 private val CodegenParameter.dataTypeWithFileFix
-    get() = if (dataType == "File") "List<File>" else dataType
+    get() = if (dataType == "File") "List<MultipartFile>" else dataType
 
 val CodegenOperation.returnTypeWithGeneric: String
     get() {
