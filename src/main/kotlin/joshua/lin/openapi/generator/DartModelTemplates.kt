@@ -1,6 +1,6 @@
 package joshua.lin.openapi.generator
 
-import com.google.common.base.CaseFormat
+import com.google.common.base.CaseFormat.*
 import org.openapitools.codegen.CodegenModel
 import org.openapitools.codegen.CodegenProperty
 
@@ -46,6 +46,37 @@ val CodegenModel.code
                 }
             """
 
+        hasDiscriminatorWithNonEmptyMapping -> """
+                import 'package:flutter/foundation.dart';
+                import 'package:freezed_annotation/freezed_annotation.dart';
+                $importStatements
+
+                part '${classFilename}.freezed.dart';
+                ${if (allVars.any { it.isBinary }) "" else "part '${classFilename}.g.dart';"}
+
+                @Freezed(fromJson: true)
+                class $classname with _${'$'}${classname} {
+                  ${(anyOf + oneOf).joinToString("\n") { modelName -> """
+                    const factory ${classname}.${UPPER_CAMEL.to(LOWER_CAMEL, modelName)}({
+                       ${interfaceModels.first { it.name == modelName }.allVars.joinToString("\n") { it.constructorParameter }}
+                    }) = $modelName;
+                  """}}
+
+                  factory ${classname}.fromJson(Map<String, dynamic> json) {
+                    switch (json['${discriminatorName}']) {
+                      ${discriminator.mapping.entries.joinToString("\n") {
+                        "case '${it.key}': return ${it.value.split("/").last()}.fromJson(json);"
+                      }}
+                
+                      default:
+                        throw CheckedFromJsonException(json, '$discriminatorName', '$classname',
+                         'Invalid union type "${"$"}{json['type']}"!',
+                        );
+                    }
+                  }
+                }
+        """
+
         else -> """
                 import 'package:flutter/foundation.dart';
                 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -65,11 +96,18 @@ val CodegenModel.code
             """
     }
 
-private val CodegenModel.importStatements
-    get() = imports.joinToString("\n") {
-        val snakeCase = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, it)
-        if (snakeCase == "file") "import 'dart:io';"
-        else "import '${snakeCase}.dart';"
+private val CodegenModel.importStatements: String
+    get() {
+        val interfaceModels = interfaceModels ?: setOf()
+        val imports = (imports + interfaceModels.flatMap { it.imports }.toSet()).filterNot {
+            it in interfaceModels.map { it.name }
+        }
+
+        return imports.joinToString("\n") {
+            val snakeCase = LOWER_CAMEL.to(LOWER_UNDERSCORE, it)
+            if (snakeCase == "file") "import 'dart:io';"
+            else "import '${snakeCase}.dart';"
+        }
     }
 
 private val CodegenModel.enumValues

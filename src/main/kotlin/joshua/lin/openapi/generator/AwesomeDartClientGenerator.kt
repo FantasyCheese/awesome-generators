@@ -48,11 +48,23 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
     }
 
     override fun postProcessAllModels(objs: MutableMap<String, ModelsMap>): Map<String, ModelsMap> {
-        val allModels = super.postProcessAllModels(objs)
-        allModels.map { it.value.models.first().model }.forEach { model ->
+        var models = super.postProcessAllModels(objs)
+
+        val discriminatorModels = models
+            .map { it.value.models.first().model }
+            .filter { it.hasDiscriminatorWithNonEmptyMapping }
+            .flatMap { it.interfaceModels }.map { it.name }
+
+        models = models.filterNot {
+            val name = it.value.models.first().model.name
+            name in discriminatorModels || name.endsWith("allOf")
+        }
+
+        models.map { it.value.models.first().model }.forEach { model ->
             model.vendorExtensions["CODE"] = model.code
         }
-        return allModels
+
+        return models
     }
 
     override fun postProcessOperationsWithModels(
@@ -110,7 +122,7 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
 
     private fun generateClientFactoryCode(operations: List<CodegenOperation>): String {
         val globalParameters = mutableListOf<GlobalParameter>()
-        operations.forEach { op->
+        operations.forEach { op ->
             op.allParams.filter { it.isGlobal }.forEach {
                 val type = when {
                     it.isHeaderParam -> "headers"
@@ -127,7 +139,7 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
             }
         }
 
-        return """
+        return if (globalParameters.isEmpty()) "" else """
             RestClient restClientWithGlobalParameter(
               Dio dio, {
               String? baseUrl,
@@ -159,7 +171,8 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
 }
 
 class GlobalParameter(val paramType: String, val paramName: String, val operations: MutableList<CodegenOperation>) {
-    val interceptorRequestCode get() = """
+    val interceptorRequestCode
+        get() = """
         if ([
           ${operations.joinToString("\n") { "\"${it.httpMethod}:${it.path}\"," }}
         ].contains('${"$"}{options.method}:${"$"}{options.path}')) {
