@@ -50,8 +50,6 @@ class AwesomeGoServerGenerator : GoGinServerCodegen(), CodegenConfig {
 
     override fun postProcessAllModels(objs: MutableMap<String, ModelsMap>): MutableMap<String, ModelsMap> {
         val models = super.postProcessAllModels(objs)
-        handleResponseWrapperModel(models, additionalProperties[AwesomeTypeScriptClientGenerator.RESPONSE_WRAPPER] as String)
-        handleResponseWrapperModel(models, additionalProperties[AwesomeTypeScriptClientGenerator.LIST_RESPONSE_WRAPPER] as String)
         return models
     }
 

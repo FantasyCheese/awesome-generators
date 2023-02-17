@@ -1,4 +1,9 @@
 {{#withSeparateModelsAndApi}}
-{{#apiInfo}}{{#apis}}{{#operations}}export * from './{{classFilename}}';
-{{/operations}}{{/apis}}{{/apiInfo}}
+    {{#apiInfo}}
+        {{#apis}}
+            {{#operations}}
+            export * from './{{classFilename}}';
+        {{/operations}}
+        {{/apis}}
+    {{/apiInfo}}
 {{/withSeparateModelsAndApi}}

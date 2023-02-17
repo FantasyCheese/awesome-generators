@@ -1,5 +1,7 @@
-package joshua.lin.openapi.generator
+package joshua.lin.openapi.generator.dart
 
+import joshua.lin.openapi.generator.SUCCESS_RESPONSE_MODEL
+import joshua.lin.openapi.generator.genericTypes
 import org.openapitools.codegen.CodegenModel
 import org.openapitools.codegen.CodegenOperation
 import org.openapitools.codegen.CodegenParameter
@@ -45,5 +47,3 @@ val CodegenOperation.returnTypeWithGeneric: String
 
 val CodegenParameter.isGlobal
     get() = vendorExtensions.containsKey("x-global-parameter")
-
-const val SUCCESS_RESPONSE_MODEL = "SUCCESS_RESPONSE_MODEL"

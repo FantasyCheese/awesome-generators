@@ -44,9 +44,12 @@ fun <T> Schema<T>.onlyDescription() : Boolean {
     ).all { it == null }
 }
 
+val CodegenModel.genericModel: CodegenModel?
+    get() = interfaceModels?.firstOrNull { it.genericSymbols.isNotEmpty() }
+
 val CodegenModel.genericTypes: List<String>
     get() {
-        val genericModel = interfaceModels?.firstOrNull { it.genericSymbols.isNotEmpty() } ?: return emptyList()
+        val genericModel = genericModel ?: return emptyList()
         val properties = interfaceModels.filterNot { it == genericModel }.flatMap { it.allVars }
         return genericModel.genericProperties.map { genericProp ->
             try {
@@ -64,3 +67,5 @@ val CodegenModel.genericProperties
 
 val CodegenModel.genericSymbols
     get() = genericProperties.map { it.genericType }
+
+const val SUCCESS_RESPONSE_MODEL = "SUCCESS_RESPONSE_MODEL"

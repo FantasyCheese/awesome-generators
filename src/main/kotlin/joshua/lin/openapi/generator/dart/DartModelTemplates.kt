@@ -1,6 +1,8 @@
-package joshua.lin.openapi.generator
+package joshua.lin.openapi.generator.dart
 
 import com.google.common.base.CaseFormat.*
+import joshua.lin.openapi.generator.genericSymbols
+import joshua.lin.openapi.generator.genericType
 import org.openapitools.codegen.CodegenModel
 import org.openapitools.codegen.CodegenProperty
 

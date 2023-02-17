@@ -1,6 +1,10 @@
-package joshua.lin.openapi.generator
+package joshua.lin.openapi.generator.dart
 
 import io.swagger.v3.oas.models.OpenAPI
+import joshua.lin.openapi.generator.SUCCESS_RESPONSE_MODEL
+import joshua.lin.openapi.generator.extractInlineEnum
+import joshua.lin.openapi.generator.handleDescriptionByAllOf
+import joshua.lin.openapi.generator.removeOperationTags
 import org.openapitools.codegen.CodegenConstants
 import org.openapitools.codegen.CodegenOperation
 import org.openapitools.codegen.SupportingFile

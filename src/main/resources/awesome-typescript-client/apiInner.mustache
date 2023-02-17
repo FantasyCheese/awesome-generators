@@ -1,36 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
 import { defaultAxios } from '{{apiRelativeToRoot}}index';
-import { {{#imports}}{{classname}}, {{/imports}} } from '{{apiRelativeToRoot}}{{tsModelPackage}}';
+{{{vendorExtensions.IMPORTS}}}
 {{#operations}}{{#operation}}
-export async function {{operationId}}({{#hasParams}}args: {{operationIdCamelCase}}Args{{/hasParams}}): Promise<{{{returnType}}}{{^returnType}}void{{/returnType}}> {
-    const response = await defaultAxios.request({
-        url: `{{{path}}}`,
-        method: '{{httpMethod}}',
-        {{#hasQueryParams}}params: {
-            {{#queryParams}}
-            {{paramName}}: args.{{paramName}},
-            {{/queryParams}}
-        },{{/hasQueryParams}}
-        {{#hasHeaderParams}}headers: {
-            {{#headerParams}}{{paramName}}: args.{{paramName}}{{/headerParams}}
-        },{{/hasHeaderParams}}
-        {{#bodyParam}}data: args.{{paramName}}{{/bodyParam}}
-    });
-    return response.data;
-}
-{{#hasParams}}
-export interface {{operationIdCamelCase}}Args {
-    {{#allParams}}
-    {{paramName}}{{^required}}?{{/required}}: {{#isEnum}}{{operationIdCamelCase}}{{#lambda.pascalcase}}{{paramName}}{{/lambda.pascalcase}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#isNullable}} | null{{/isNullable}}
-    {{/allParams}}
-}
-{{#allParams}}{{#isEnum}}
-export enum {{operationIdCamelCase}}{{#lambda.pascalcase}}{{paramName}}{{/lambda.pascalcase}} {
-{{#allowableValues}}{{#enumVars}}
-    {{{name}}} = {{{value}}},
-{{/enumVars}}{{/allowableValues}}
-}
-{{/isEnum}}{{/allParams}}
-{{/hasParams}}
+{{{vendorExtensions.CODE}}}
 {{/operation}}{{/operations}}
