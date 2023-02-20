@@ -44,6 +44,8 @@ fun <T> Schema<T>.onlyDescription() : Boolean {
     ).all { it == null }
 }
 
+infix fun Boolean.insert(string: () -> String) = if (this) string() else ""
+
 val CodegenModel.genericModel: CodegenModel?
     get() = interfaceModels?.firstOrNull { it.genericSymbols.isNotEmpty() }
 
