@@ -1,15 +1,13 @@
 package joshua.lin.openapi.generator.dart
 
-import joshua.lin.openapi.generator.SUCCESS_RESPONSE_MODEL
-import joshua.lin.openapi.generator.genericTypes
-import org.openapitools.codegen.CodegenModel
+import joshua.lin.openapi.generator.*
 import org.openapitools.codegen.CodegenOperation
 import org.openapitools.codegen.CodegenParameter
 
 val CodegenOperation.code
     get() = """
             @${httpMethod}("$path") ${if (this.hasFormParams) "@MultiPart()" else ""}
-            Future<${returnTypeWithGeneric}> ${operationId}(
+            Future<${returnType()}> ${operationId}(
               ${allParams.filterNot { it.isGlobal }.joinToString("\n") { it.code }}
             );
         """
@@ -36,14 +34,6 @@ private val CodegenParameter.annotationParam
 
 private val CodegenParameter.dataTypeWithFileFix
     get() = if (dataType == "File") "List<MultipartFile>" else dataType
-
-val CodegenOperation.returnTypeWithGeneric: String
-    get() {
-        val model = vendorExtensions[SUCCESS_RESPONSE_MODEL] as? CodegenModel ?: return returnType
-        return if (model.genericTypes.isEmpty()) returnType else {
-            model.dataType + "<${model.genericTypes.joinToString(",")}>"
-        }
-    }
 
 val CodegenParameter.isGlobal
     get() = vendorExtensions.containsKey("x-global-parameter")

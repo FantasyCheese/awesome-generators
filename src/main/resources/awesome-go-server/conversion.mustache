@@ -1,0 +1,17 @@
+package {{packageName}}
+
+import "strconv"
+
+func string2int32(s string) int32 {
+	i, _ := strconv.ParseInt(s, 10, 32)
+	return int32(i)
+}
+
+func stringArray2int32Array(strings []string) []int32 {
+	var array []int32
+	for _, s := range strings {
+		i, _ := strconv.ParseInt(s, 10, 32)
+		array = append(array, int32(i))
+	}
+	return array
+}

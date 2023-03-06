@@ -2,7 +2,7 @@ package joshua.lin.openapi.generator.dart
 
 import com.google.common.base.CaseFormat.*
 import joshua.lin.openapi.generator.genericSymbols
-import joshua.lin.openapi.generator.genericType
+import joshua.lin.openapi.generator.type
 import org.openapitools.codegen.CodegenModel
 import org.openapitools.codegen.CodegenProperty
 
@@ -28,7 +28,7 @@ val CodegenModel.code
                 part '${classFilename}.g.dart';
 
                 @JsonSerializable(genericArgumentFactories: true)
-                class ${classname}${genericDeclarationCode} {
+                class ${classname}${genericDeclaration} {
                   ${allVars.joinToString("\n") { it.fieldCode }}
 
                   const ${classname}(${allVars.joinToString(",") { "this.${it.name}" }});
@@ -37,13 +37,13 @@ val CodegenModel.code
                     Map<String, dynamic> json,
                     ${genericSymbols.joinToString("\n") { "$it Function(Object? json) fromJson$it," }}
                   ) {
-                    return _$${classname}FromJson${genericDeclarationCode}(json, ${genericSymbols.joinToString(",") { "fromJson$it" }});
+                    return _$${classname}FromJson${genericDeclaration}(json, ${genericSymbols.joinToString(",") { "fromJson$it" }});
                   }
 
                   Map<String, dynamic> toJson(
                     ${genericSymbols.joinToString("\n") { "Object Function($it value) toJson$it," }}
                   ) {
-                    return _$${classname}ToJson${genericDeclarationCode}(this, ${genericSymbols.joinToString(",") { "toJson$it" }});
+                    return _$${classname}ToJson${genericDeclaration}(this, ${genericSymbols.joinToString(",") { "toJson$it" }});
                   }
                 }
             """
@@ -120,16 +120,16 @@ private val CodegenModel.enumValues
 private val CodegenProperty.constructorParameter
     get() =
         when {
-            requiredWithDefault -> "$jsonKey $typeDefault ${genericType ?: dataType} $name,"
-            required -> "$jsonKey required ${genericType ?: dataType} $name,"
-            else -> "$jsonKey ${genericType ?: dataType}? $name,"
+            requiredWithDefault -> "$jsonKey $typeDefault $type $name,"
+            required -> "$jsonKey required $type $name,"
+            else -> "$jsonKey ${type}? $name,"
         }
 
-private val CodegenModel.genericDeclarationCode
+private val CodegenModel.genericDeclaration
     get() = "<${genericSymbols.joinToString(",")}>"
 
 private val CodegenProperty.fieldCode
-    get() = "final ${genericType ?: dataType}${if (required) "" else "?"} ${name};"
+    get() = "final ${type}${if (required) "" else "?"} ${name};"
 
 private val CodegenProperty.typeDefault
     get() = when {

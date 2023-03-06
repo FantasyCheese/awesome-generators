@@ -1,15 +1,12 @@
 package joshua.lin.openapi.generator.typescript
 
-import joshua.lin.openapi.generator.SUCCESS_RESPONSE_MODEL
-import joshua.lin.openapi.generator.genericModel
-import joshua.lin.openapi.generator.genericTypes
-import org.openapitools.codegen.CodegenModel
+import joshua.lin.openapi.generator.*
 import org.openapitools.codegen.CodegenOperation
 import org.openapitools.codegen.CodegenParameter
 
 val CodegenOperation.code
     get() = """
-        export async function ${operationId}(${if (hasParams) "params: ${operationIdCamelCase}Params" else ""}): Promise<$returnTypeWithGeneric> {
+        export async function ${operationId}(${if (hasParams) "params: ${operationIdCamelCase}Params" else ""}): Promise<${returnType()}> {
             const response = await defaultAxios.request({
                 url: `${pathCode}`,
                 method: '${httpMethod}',
@@ -45,13 +42,6 @@ val CodegenOperation.paramsInterfaceCode
             ${allParams.joinToString("\n") { it.code }}        
         }
     """
-
-val CodegenOperation.returnTypeWithGeneric
-    get() = vendorExtensions[SUCCESS_RESPONSE_MODEL]?.let { it as? CodegenModel }
-        ?.takeIf { it.genericModel != null }
-        ?.let {
-            it.genericModel!!.classname + "<${it.genericTypes.joinToString(",")}>"
-        } ?: returnType ?: "void"
 
 val CodegenOperation.pathCode
     get() = path.replace(Regex("\\{(.*)}")) { "\${params.${it.groupValues[1]}}" }

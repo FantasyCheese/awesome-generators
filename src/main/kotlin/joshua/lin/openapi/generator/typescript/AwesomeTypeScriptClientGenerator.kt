@@ -1,10 +1,7 @@
 package joshua.lin.openapi.generator.typescript
 
 import io.swagger.v3.oas.models.OpenAPI
-import joshua.lin.openapi.generator.SUCCESS_RESPONSE_MODEL
-import joshua.lin.openapi.generator.extractInlineEnum
-import joshua.lin.openapi.generator.handleDescriptionByAllOf
-import joshua.lin.openapi.generator.removeOperationTags
+import joshua.lin.openapi.generator.*
 import org.openapitools.codegen.CodegenConfig
 import org.openapitools.codegen.CodegenConstants
 import org.openapitools.codegen.SupportingFile
@@ -67,13 +64,7 @@ class AwesomeTypeScriptClientGenerator : TypeScriptAxiosClientCodegen(), Codegen
         val operationsMap = super.postProcessOperationsWithModels(objs, allModels)
         val operations = operationsMap.operations.operation
 
-        operations.filter { it.returnType == null }.forEach { it.returnType = "void" }
-
-        operations.forEach { op ->
-            val resp = op.responses?.firstOrNull { it.is2xx } ?: return@forEach
-            val model = allModels?.map { it.model }?.firstOrNull { it.classname == resp.dataType } ?: return@forEach
-            op.vendorExtensions[SUCCESS_RESPONSE_MODEL] = model
-        }
+        setSuccessResponseModel(operations, allModels)
 
         operations.forEach {
             it.vendorExtensions["CODE"] = it.code

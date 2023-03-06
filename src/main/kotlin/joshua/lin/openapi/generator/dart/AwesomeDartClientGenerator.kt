@@ -1,10 +1,7 @@
 package joshua.lin.openapi.generator.dart
 
 import io.swagger.v3.oas.models.OpenAPI
-import joshua.lin.openapi.generator.SUCCESS_RESPONSE_MODEL
-import joshua.lin.openapi.generator.extractInlineEnum
-import joshua.lin.openapi.generator.handleDescriptionByAllOf
-import joshua.lin.openapi.generator.removeOperationTags
+import joshua.lin.openapi.generator.*
 import org.openapitools.codegen.CodegenConstants
 import org.openapitools.codegen.CodegenOperation
 import org.openapitools.codegen.SupportingFile
@@ -78,20 +75,13 @@ class AwesomeDartClientGenerator : AbstractDartCodegen() {
         val operationsMap = super.postProcessOperationsWithModels(objs, allModels)
         val operations = operationsMap.operations.operation
 
-        // handle null return type
-        operations.filter { it.returnType == null }.forEach { it.returnType = "void" }
-
-        operations.forEach { op ->
-            val resp = op.responses?.firstOrNull { it.is2xx } ?: return@forEach
-            val model = allModels?.map { it.model }?.firstOrNull { it.classname == resp.dataType } ?: return@forEach
-            op.vendorExtensions[SUCCESS_RESPONSE_MODEL] = model
-        }
+        setSuccessResponseModel(operations, allModels)
 
         // TODO: support File return type
-        operations.removeIf { it.returnTypeWithGeneric.matches(Regex("File")) }
+        operations.removeIf { it.returnType().matches(Regex("File")) }
 
         // TODO: support Map return type
-        operations.removeIf { it.returnTypeWithGeneric.matches(Regex(".*Map<.+>.*")) }
+        operations.removeIf { it.returnType().matches(Regex(".*Map<.+>.*")) }
 
         // set generated code to vendor extension
         operations.forEach {

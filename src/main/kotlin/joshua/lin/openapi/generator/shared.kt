@@ -5,7 +5,10 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.ComposedSchema
 import io.swagger.v3.oas.models.media.Schema
 import org.openapitools.codegen.CodegenModel
+import org.openapitools.codegen.CodegenOperation
 import org.openapitools.codegen.CodegenProperty
+import org.openapitools.codegen.CodegenResponse
+import org.openapitools.codegen.model.ModelMap
 
 fun handleDescriptionByAllOf(openAPI: OpenAPI) {
     openAPI.components.schemas.map { it.value.properties ?: mutableMapOf() }.forEach { props ->
@@ -35,13 +38,29 @@ fun removeOperationTags(openAPI: OpenAPI) {
     openAPI.paths.values.flatMap { it.readOperations() }.forEach { it.tags?.clear() }
 }
 
-fun <T> Schema<T>.onlyDescription() : Boolean {
+fun <T> Schema<T>.onlyDescription(): Boolean {
     return description != null && listOf(
         title, multipleOf, maximum, exclusiveMaximum, minimum, exclusiveMinimum, maxLength, minLength,
         pattern, maxItems, minItems, uniqueItems, maxProperties, minProperties, required, type, not,
         properties, additionalProperties, format, `$ref`, nullable, readOnly, writeOnly, example,
         externalDocs, deprecated, xml, extensions, enum, discriminator, default
     ).all { it == null }
+}
+
+fun setSuccessResponseModel(operations: List<CodegenOperation>, allModels: MutableList<ModelMap>?) {
+    operations.forEach { op ->
+        val resp = op.responses?.firstOrNull { it.is2xx } ?: return@forEach
+        val model = allModels?.map { it.model }?.firstOrNull { it.classname == resp.dataType } ?: return@forEach
+        op.vendorExtensions[SUCCESS_RESPONSE_MODEL] = model
+    }
+}
+
+fun CodegenOperation.returnType(syntax: Pair<Char, Char> = '<' to '>', voidType: String = "void"): String {
+    return vendorExtensions[SUCCESS_RESPONSE_MODEL]?.let { it as? CodegenModel }
+        ?.takeIf { it.genericModel != null }
+        ?.let {
+            it.genericModel!!.classname + "${syntax.first}${it.genericTypes.joinToString(",")}${syntax.second}"
+        } ?: returnType ?: voidType
 }
 
 infix fun Boolean.insert(string: () -> String) = if (this) string() else ""
@@ -64,10 +83,23 @@ val CodegenModel.genericTypes: List<String>
 
 val CodegenProperty.genericType
     get() = vendorExtensions?.get("x-generic-type") as? String
+
+val CodegenProperty.type: String
+    get() = genericType ?: dataType
+
 val CodegenModel.genericProperties
     get() = allVars.filter { it.genericType != null }
 
 val CodegenModel.genericSymbols
     get() = genericProperties.map { it.genericType }
+
+val CodegenModel.enumValues
+    get() = allowableValues["enumVars"].let { it as List<Map<String, Any>> }
+
+val CodegenOperation.response2XX get() = responses.firstOrNull { it.is2xx }
+
+val CodegenOperation.response4XX get() = responses.firstOrNull { it.is4xx }
+
+val CodegenResponse.isJson get() = content?.containsKey("application/json") == true
 
 const val SUCCESS_RESPONSE_MODEL = "SUCCESS_RESPONSE_MODEL"

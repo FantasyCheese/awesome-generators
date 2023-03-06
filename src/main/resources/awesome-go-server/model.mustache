@@ -13,53 +13,6 @@ var _ = multipart.FileHeader{}
 var _ = time.Now()
 
 {{#model}}
-{{#description}}// {{{classname}}} : {{{description}}}{{/description}}
-{{#isEnum}}
-// TODO: NOT SUPPORT YET
-{{/isEnum}}
-{{^isEnum}}
-type {{classname}}{{#isGeneric}}[T any]{{/isGeneric}} struct {
-{{#vars}}{{#description}}
-    // {{{.}}}{{/description}}
-{{#deprecated}}
-    // Deprecated
-{{/deprecated}}
-    {{name}} {{#isNullable}}*{{/isNullable}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#isEnum}}{{classname}}{{name}}{{/isEnum}} `json:"{{baseName}}{{^required}},omitempty{{/required}}" form:"{{baseName}}"{{#vendorExtensions.x-go-custom-tag}} {{{.}}}{{/vendorExtensions.x-go-custom-tag}}`
-{{/vars}}
-}
-
-{{#vars}}{{#isEnum}}
-type {{classname}}{{name}} struct {
-	_pleaseNotSet string
-}
-{{#_enum}}
-func (it {{classname}}{{name}}) Set{{#lambda.pascalcase}}{{.}}{{/lambda.pascalcase}}() { it._pleaseNotSet = "{{.}}" }
-func (it {{classname}}{{name}}) is{{#lambda.pascalcase}}{{.}}{{/lambda.pascalcase}}() bool { return it._pleaseNotSet == "{{.}}" }
-{{/_enum}}
-func (it *{{classname}}{{name}}) MarshalJSON() ([]byte, error) {
-	switch it._pleaseNotSet {
-	case {{#_enum}}"{{.}}"{{^-last}}, {{/-last}}{{/_enum}}:
-		return []byte(fmt.Sprintf("\"%s\"", it._pleaseNotSet)), nil
-	default:
-		return nil, fmt.Errorf("Y U SET NO EXIST ENUM??? {{classname}}{{name}}: %s", it._pleaseNotSet)
-	}
-}
-func (it *{{classname}}{{name}}) UnmarshalJSON(data []byte) error {
-	var str string
-	if err := json.Unmarshal(data, &str); err != nil {
-		return err
-	}
-	switch str {
-	case {{#_enum}}"{{.}}"{{^-last}}, {{/-last}}{{/_enum}}:
-		it._pleaseNotSet = str
-		return nil
-	default:
-		return fmt.Errorf("Y U SET NO EXIST ENUM??? {{classname}}{{name}}: %s", str)
-	}
-}
-{{/isEnum}}{{/vars}}
-
-{{/isEnum}}
+    {{{vendorExtensions.CODE}}}
 {{/model}}
 {{/models}}
-

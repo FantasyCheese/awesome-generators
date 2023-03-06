@@ -5,12 +5,12 @@ import (
     "mime/multipart"
     "net/http"
     "strconv"
+	"strings"
     "time"
 )
 
 // Dummy variables to suppress unused import
 var _ = multipart.FileHeader{}
-var _ = http.StatusOK
 var _ = strconv.ErrRange
 var _ = time.Time{}
 {{#operations}}
