@@ -115,7 +115,6 @@ fun CodegenParameter.retrieveFromRequest(path: String): String {
     val code = when {
         isPathParam -> {
             val matches = Regex("\\{(.*)}").find(path)
-            println("${path}, $paramName: ${matches?.groupValues}")
             val index = matches?.groupValues?.indexOf(paramName)?:0
             "strings.Split(request.URL.Path, \"/\")[$index]"
         }
@@ -128,6 +127,7 @@ fun CodegenParameter.retrieveFromRequest(path: String): String {
     val conversionCode = when {
         isString || isBodyParam -> code
         isArray -> "stringArray2${baseType}Array($code)"
+        isFile -> "nil"
         else -> "string2${dataType}($code)"
     }
 

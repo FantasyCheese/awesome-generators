@@ -37,10 +37,11 @@ val CodegenModel.code
             }
             
             type $enumValuesName struct{}
+            var ${classname}Values $enumValuesName
             
             $enumConstructors
             
-            var ${classname}Values $enumValuesName
+            $stringToEnumFunction
         """.trimIndent()
 
         else -> """
@@ -65,7 +66,15 @@ val CodegenModel.enumValuesName get() = "${UPPER_CAMEL.to(LOWER_CAMEL, classname
 
 val CodegenModel.enumConstructors: String
     get() = enumValues.joinToString("\n") {
-        "func (s $enumValuesName) ${
+        "func (s $enumValuesName) ${!(it["isString"] as Boolean) insert { "Value" }}${
             UPPER_UNDERSCORE.to(UPPER_CAMEL, it["name"] as String)
         }() $classname  { return $classname{_value: ${it["value"]}} }"
     }
+
+val CodegenModel.stringToEnumFunction
+    get() = """
+        func string2$classname(str string) (v $classname) {
+        	_ = v.UnmarshalJSON([]byte("\"" + str + "\""))
+        	return
+        }
+    """.trimIndent()
