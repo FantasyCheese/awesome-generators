@@ -20,6 +20,8 @@ class AwesomeGoServerGenerator : GoServerCodegen(), CodegenConfig {
 
     init {
         additionalProperties[CodegenConstants.TEMPLATE_DIR] = "awesome-go-server"
+        additionalProperties[CodegenConstants.SOURCE_FOLDER] = "api"
+        additionalProperties[CodegenConstants.PACKAGE_NAME] = "api"
         typeMapping.let {
             it["File"] = "*multipart.FileHeader"
             it["file"] = "*multipart.FileHeader"
@@ -48,6 +50,7 @@ class AwesomeGoServerGenerator : GoServerCodegen(), CodegenConfig {
             listOf(
                 SupportingFile("gitignore", ".gitignore"),
                 SupportingFile("go.mustache", "go.mod"),
+                SupportingFile("init.sh", "init.sh"),
                 SupportingFile("spec.mustache", sourceFolder, "spec.json"),
                 SupportingFile("validation.mustache", sourceFolder, "validation.go"),
                 SupportingFile("conversion.mustache", sourceFolder, "conversion.go")

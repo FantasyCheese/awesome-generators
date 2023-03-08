@@ -20,12 +20,10 @@ class AwesomeGoServerGeneratorTest {
         DefaultGenerator().opts(
             CodegenConfigurator()
                 .setGeneratorName("awesome-go-server")
-                .setPackageName("api")
                 .setGlobalProperties(mapOf("skipFormModel" to "false"))
                 .setAdditionalProperties(mapOf(
                     "moduleName" to moduleName,
                     "serverPort" to "58271",
-                    "sourceFolder" to "api"
                 ))
                 .setEnablePostProcessFile(true)
                 .setInputSpec("../model-tv/model-tv-api-spec/public/$stage/spec-bundle.yaml")
